@@ -28,4 +28,47 @@ public class DresClient {
         
         return message.map { ($0.name, $0.id) }
     }
+    
+    /// Retrieves information about the current active task of the specified evaluation.
+    /// If the evaluation has no active task, an error is thrown.
+    ///
+    /// - Parameters:
+    ///   - evaluationId: The ID of the evaluation to retrieve active task information for.
+    ///
+    /// - Returns: Tuple of task name, task group, task type and duraction in seconds.
+    public func getCurrentTask(evaluationId: String) async throws -> (name: String, taskGroup: String, taskType: String, duration: Int64) {
+        let response = try await client.getApiV2ClientEvaluationCurrentTaskByEvaluationId(
+            path: .init(evaluationId: evaluationId),
+            query: .init(session: session)
+        )
+        
+        let message = try response.ok.body.json
+        
+        return (message.name, message.taskGroup, message.taskType, message.duration)
+    }
+    
+    /// Submits the specified item to the specified evaluation.
+    ///
+    /// - Parameters:
+    ///   - evaluationId: The ID of the evaluation to retrieve active task information for.
+    ///   - item: The ID of the item to submit.
+    ///   - start: Optional start timestamp.
+    ///   - end: Optional end timestamp.
+    ///
+    /// - Returns: Tuple of submission status and description.
+    public func submit(evaluationId: String, item: String, start: Int64? = nil, end: Int64? = nil) async throws -> (status: Bool, description: String) {
+        let response = try await client.postApiV2SubmitByEvaluationId(
+            path: .init(evaluationId: evaluationId),
+            query: .init(session: session),
+            body: .json(
+                .init(answerSets: [.init(
+                    answers: [.init(mediaItemName: item, start: start, end: end)]
+                )])
+            )
+        )
+        
+        let message = try response.ok.body.json
+        
+        return (message.status, message.description)
+    }
 }
