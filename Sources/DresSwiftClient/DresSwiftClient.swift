@@ -67,8 +67,71 @@ public class DresClient {
             )
         )
         
-        let message = try response.ok.body.json
+        switch response {
+        case .ok(let ok):
+            let message = try ok.body.json
+            return (message.status, message.description)
+        case .accepted(let accepted):
+            let message = try accepted.body.json
+            return (message.status, message.description)
+        case .badRequest(let badRequest):
+            let message = try badRequest.body.json
+            return (message.status, message.description)
+        case .unauthorized(let unauthorized):
+            let message = try unauthorized.body.json
+            return (message.status, message.description)
+        case .notFound(let notFound):
+            let message = try notFound.body.json
+            return (message.status, message.description)
+        case .preconditionFailed(let preconditionFailed):
+            let message = try preconditionFailed.body.json
+            return (message.status, message.description)
+        case .undocumented(statusCode: _, let undocumented):
+            let message = undocumented.body
+            return (false, "\(String(describing: message!))")
+        }
+    }
+    
+    /// Submits the specified text to the specified evaluation.
+    ///
+    /// - Parameters:
+    ///   - evaluationId: The ID of the evaluation to retrieve active task information for.
+    ///   - text: The text to submit
+    ///
+    /// - Returns: Tuple of submission status and description.
+    public func submitText(evaluationId: String, text: String) async throws -> (status: Bool, description: String) {
+        let response = try await client.postApiV2SubmitByEvaluationId(
+            path: .init(evaluationId: evaluationId),
+            query: .init(session: session),
+            body: .json(
+                .init(answerSets: [.init(
+                    answers: [.init(text: text)]
+                )])
+            )
+        )
         
-        return (message.status, message.description)
+        switch response {
+        case .ok(let ok):
+            let message = try ok.body.json
+            return (message.status, message.description)
+        case .accepted(let accepted):
+            let message = try accepted.body.json
+            return (message.status, message.description)
+        case .badRequest(let badRequest):
+            let message = try badRequest.body.json
+            return (message.status, message.description)
+        case .unauthorized(let unauthorized):
+            let message = try unauthorized.body.json
+            return (message.status, message.description)
+        case .notFound(let notFound):
+            let message = try notFound.body.json
+            return (message.status, message.description)
+        case .preconditionFailed(let preconditionFailed):
+            let message = try preconditionFailed.body.json
+            return (message.status, message.description)
+        case .undocumented(statusCode: _, let undocumented):
+            let message = undocumented.body
+            return (false, "\(String(describing: message))")
+        }
     }
 }
