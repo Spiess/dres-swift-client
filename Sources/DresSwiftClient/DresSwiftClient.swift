@@ -134,4 +134,21 @@ public class DresClient {
             return (false, "\(String(describing: message))")
         }
     }
+    
+    public func logResults(evaluationId: String, timestamp: Int64, sortType: String, resultSetAvailability: String, results: [(mediaItem: String, start: Int64, end: Int64)], events: [(timestamp: Int64, category: String, _type: String, value: String)]) async throws -> Bool {
+        let response = try await client.postApiV2LogResultByEvaluationId(
+            path: .init(evaluationId: evaluationId),
+            query: .init(session: session),
+            body: .json(.init(
+                timestamp: timestamp,
+                sortType: sortType,
+                resultSetAvailability: resultSetAvailability,
+                results: results.map {.init(answer: .init(mediaItemName: $0.mediaItem, start: $0.start, end: $0.end))},
+                events: events.map {.init(timestamp: $0.timestamp, category: .init(rawValue: $0.category) ?? .OTHER, _type: $0._type, value: $0.value)}))
+        )
+        
+        let message = try response.ok.body.json
+        
+        return message.status
+    }
 }

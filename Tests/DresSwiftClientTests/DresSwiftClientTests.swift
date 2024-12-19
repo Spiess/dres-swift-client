@@ -46,3 +46,14 @@ let password = "yuaZDFgUe4Kb"
     let response = try await client.submitText(evaluationId: evaluation.id, text: "triest")
     print(response)
 }
+
+@Test func logResults() async throws {
+    let client = try await DresClient(url: URL(string: "https://vbs.videobrowsing.org")!, username: username, password: password)
+    let evaluations = try await client.listEvaluations()
+    let evaluation = evaluations.first!
+    // Log results
+    print("Logging results to: \(evaluation.name)")
+    let status = try await client.logResults(evaluationId: evaluation.id, timestamp: 1000, sortType: "Similarity", resultSetAvailability: "Very", results: [("test", 1000, 2000)], events: [(2000, "BROWSING", "test", "test value")])
+    print(status)
+    #expect(status)
+}
