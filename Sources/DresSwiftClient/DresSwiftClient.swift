@@ -2,7 +2,7 @@ import OpenAPIRuntime
 import Foundation
 import OpenAPIURLSession
 
-public class DresClient {
+public struct DresClient : Sendable {
     let client: Client
     let username, session: String
     
