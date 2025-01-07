@@ -29,10 +29,10 @@ let password = "yuaZDFgUe4Kb"
     let client = try await DresClient(url: URL(string: "https://vbs.videobrowsing.org")!, username: username, password: password)
     // Get the first evaluation
     let evaluations = try await client.listEvaluations()
-    let evaluation = evaluations[3]
+    let evaluation = evaluations[0]
     // Submit item
     print("Submitting item to: \(evaluation.name)")
-    let response = try await client.submit(evaluationId: evaluation.id, item: "text", start: 1000, end: 2000)
+    let response = try await client.submit(evaluationId: evaluation.id, item: "00001", start: 1000, end: 2000)
     print(response)
     #expect(response.status)
 }
@@ -42,7 +42,7 @@ let password = "yuaZDFgUe4Kb"
     let evaluations = try await client.listEvaluations()
     let evaluation = evaluations[2]
     // Submit item
-    print("Submitting item to: \(evaluation.name)")
+    print("Submitting text item to: \(evaluation.name)")
     let response = try await client.submitText(evaluationId: evaluation.id, text: "triest")
     print(response)
 }

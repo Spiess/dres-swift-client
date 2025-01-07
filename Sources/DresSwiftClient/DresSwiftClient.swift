@@ -2,9 +2,16 @@ import OpenAPIRuntime
 import Foundation
 import OpenAPIURLSession
 
+struct TaskAnswer: Codable {
+    let mediaItemName: String
+    let start: Int64
+    let end: Int64
+}
+
 public struct DresClient : Sendable {
     let client: Client
     let username, session: String
+    let url: URL
     
     /// Instantiate client and perform login.
     public init(url: URL, username: String, password: String) async throws {
@@ -16,6 +23,8 @@ public struct DresClient : Sendable {
         
         self.username = message.username!
         self.session = message.sessionId!
+        
+        self.url = url
     }
     
     /// Retrieves and lists the evaluations currently available to this client.
@@ -56,40 +65,24 @@ public struct DresClient : Sendable {
     ///   - end: Optional end timestamp.
     ///
     /// - Returns: Tuple of submission status and description.
+    @available(macOS 13.0, *)
     public func submit(evaluationId: String, item: String, start: Int64? = nil, end: Int64? = nil) async throws -> (status: Bool, description: String) {
-        let response = try await client.postApiV2SubmitByEvaluationId(
-            path: .init(evaluationId: evaluationId),
-            query: .init(session: session),
-            body: .json(
-                .init(answerSets: [.init(
-                    answers: [.init(mediaItemName: item, start: start, end: end)]
-                )])
-            )
-        )
+        var request = URLRequest(url: url.appending(path: "api/v2/submit").appending(path: evaluationId).appending(queryItems: [.init(name: "session", value: session)]))
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "accept")
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         
-        switch response {
-        case .ok(let ok):
-            let message = try ok.body.json
-            return (message.status, message.description)
-        case .accepted(let accepted):
-            let message = try accepted.body.json
-            return (message.status, message.description)
-        case .badRequest(let badRequest):
-            let message = try badRequest.body.json
-            return (message.status, message.description)
-        case .unauthorized(let unauthorized):
-            let message = try unauthorized.body.json
-            return (message.status, message.description)
-        case .notFound(let notFound):
-            let message = try notFound.body.json
-            return (message.status, message.description)
-        case .preconditionFailed(let preconditionFailed):
-            let message = try preconditionFailed.body.json
-            return (message.status, message.description)
-        case .undocumented(statusCode: _, let undocumented):
-            let message = undocumented.body
-            return (false, "\(String(describing: message!))")
+        let jsonData = try JSONEncoder().encode(["answerSets": [["answers": [TaskAnswer(mediaItemName: item, start: start!, end: end!)]]]])
+        request.httpBody = jsonData
+
+        let (data, response) = try await URLSession.shared.data(for: request)
+        
+        if let jsonResponse = try JSONSerialization.jsonObject(with: data) as? [String: Any] {
+            print("Response JSON: \(jsonResponse)")
+        } else {
+            print("Invalid JSON format")
         }
+        return (false, "TODO")
     }
     
     /// Submits the specified text to the specified evaluation.
