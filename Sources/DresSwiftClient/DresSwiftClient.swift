@@ -75,14 +75,15 @@ public struct DresClient : Sendable {
         let jsonData = try JSONEncoder().encode(["answerSets": [["answers": [TaskAnswer(mediaItemName: item, start: start!, end: end!)]]]])
         request.httpBody = jsonData
 
-        let (data, response) = try await URLSession.shared.data(for: request)
+        let (data, _) = try await URLSession.shared.data(for: request)
         
         if let jsonResponse = try JSONSerialization.jsonObject(with: data) as? [String: Any] {
-            print("Response JSON: \(jsonResponse)")
+            let status = jsonResponse["status"] as? Bool ?? false
+            let description = jsonResponse["description"] as? String ?? "Could not parse response"
+            return (status, description)
         } else {
-            print("Invalid JSON format")
+            return (false, "Invalid JSON format")
         }
-        return (false, "TODO")
     }
     
     /// Submits the specified text to the specified evaluation.

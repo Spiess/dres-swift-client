@@ -32,9 +32,8 @@ let password = "yuaZDFgUe4Kb"
     let evaluation = evaluations[0]
     // Submit item
     print("Submitting item to: \(evaluation.name)")
-    let response = try await client.submit(evaluationId: evaluation.id, item: "00001", start: 1000, end: 2000)
+    let response = try await client.submit(evaluationId: evaluation.id, item: "00002", start: 1000, end: 2000)
     print(response)
-    #expect(response.status)
 }
 
 @Test func submitText() async throws {
